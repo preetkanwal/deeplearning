@@ -41,3 +41,35 @@ b = tf.Variable(tf.zeros([1]), tf.float32)
 Z = tf.add(tf.matmul(X, W), b)
 prediction = tf.nn.sigmoid(Z)
 
+# Calculate the cost
+cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = Z, labels = Y))
+
+optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+
+
+init = tf.global_variables_initializer()
+
+costs = []
+
+with tf.Session() as sess:
+    sess.run(init)
+    
+    for epoch in range(epochs):
+        _, c = sess.run([optimizer, cost], feed_dict={X: data, Y: labels})
+        
+        if (epoch+1) % 500 == 0:
+            print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(c),                "W=", sess.run(W), "b=", sess.run(b))
+        costs = np.append(costs, c)
+        
+    predicted_labels = tf.to_float(tf.greater(prediction, 0.5))
+
+    # Compute the accuracy
+    accuracy = tf.reduce_mean(tf.to_float(tf.equal(Y, predicted_labels)))
+
+    print ("Accuracy:", accuracy.eval({X: data, Y: labels}))
+
+
+plt.plot(costs)
+plt.xlabel('number of epochs')
+plt.ylabel('cost')
+
